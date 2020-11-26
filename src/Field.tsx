@@ -63,7 +63,6 @@ export const Field: FC<{
 
     const [x, setX] = useState(-1);
     const [y, setY] = useState(-1);
-    console.log(x, y);
 
     useEffect(() => {
       const canvas = canvasRef.current!;
@@ -76,14 +75,12 @@ export const Field: FC<{
     }, [x, y, mines, columns, rows]);
 
     useEffect(() => {
-      console.log("asd", x, y);
       const canvas = canvasRef.current!;
 
       const onClick = (evt: MouseEvent) => {
         if (revealMines) {
           return;
         }
-        console.log("s", x, y);
         startGame(x, y);
       };
       canvas.addEventListener("click", onClick);
