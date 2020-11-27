@@ -47,7 +47,7 @@ export const Field: FC<{
   numbers: Array<{ x: number; y: number; value: number }>;
   openFields: Array<{ x: number; y: number }>;
   revealMines: boolean;
-}> = React.memo(
+}> =
   ({
     columns,
     rows,
@@ -67,12 +67,56 @@ export const Field: FC<{
     useEffect(() => {
       const canvas = canvasRef.current!;
       const ctx = canvas.getContext("2d")!;
+      canvas.height = rows * rectHW;
+      canvas.width = columns * rectHW;
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.font = "16px Arial";
+      ctx.fillStyle = "grey";
 
       drawLines(columns, rows, ctx);
       if (x !== -1 && y !== -1) {
         hoverReact(x, y, ctx);
       }
-    }, [x, y, mines, columns, rows]);
+
+      for (const { x, y } of openFields) {
+        if (mines.find(m => m.x === x && m.y === y)) {
+          continue;
+        }
+        const num = numbers.find(m => m.x === x && m.y === y);
+        if (!num) {
+          return;
+        }
+        ctx.fillStyle = "grey";
+        if (num.value !== 0) {
+          ctx.fillText(
+            num.value + "",
+            x * rectHW + rectHW / 2,
+            y * rectHW + rectHW / 2
+          );
+        } else {
+          ctx.fillRect(x * rectHW, y * rectHW, rectHW, rectHW);
+        }
+      }
+
+      for (const { x, y } of marked) {
+        ctx.fillText("!", x * rectHW + rectHW / 2, y * rectHW + rectHW / 2);
+      }
+
+      if (!revealMines) {
+        return;
+      }
+
+      ctx.fillStyle = "red";
+      for (const { x, y } of mines) {
+        ctx.fillRect(x * rectHW, y * rectHW, rectHW, rectHW);
+      }
+
+      ctx.fillStyle = "grey";
+      for (const { x, y } of marked) {
+        ctx.fillText("!", x * rectHW + rectHW / 2, y * rectHW + rectHW / 2);
+      }
+    }, [x, y, mines, columns, rows, openFields, numbers, marked, revealMines]);
 
     useEffect(() => {
       const canvas = canvasRef.current!;
@@ -103,16 +147,6 @@ export const Field: FC<{
     useEffect(() => {
       const canvas = canvasRef.current!;
 
-      canvas.height = rows * rectHW;
-      canvas.width = columns * rectHW;
-
-      const ctx = canvas.getContext("2d")!;
-      drawLines(columns, rows, ctx);
-
-      ctx.textBaseline = "middle";
-      ctx.textAlign = "center";
-      ctx.font = "16px Arial";
-      ctx.fillStyle = "grey";
 
       const hover = (evt: MouseEvent) => {
         if (revealMines) {
@@ -138,53 +172,6 @@ export const Field: FC<{
       };
     }, [columns, revealMines, rows]);
 
-    useEffect(() => {
-      const canvas = canvasRef.current!;
-      const ctx = canvas.getContext("2d")!;
-      for (const { x, y } of openFields) {
-        if (mines.find(m => m.x === x && m.y === y)) {
-          return;
-        }
-        const num = numbers.find(m => m.x === x && m.y === y);
-        if (!num) {
-          return;
-        }
-
-        ctx.fillStyle = "grey";
-        if (num.value !== 0) {
-          ctx.fillText(
-            num.value + "",
-            x * rectHW + rectHW / 2,
-            y * rectHW + rectHW / 2
-          );
-        } else {
-          ctx.fillRect(x * rectHW, y * rectHW, rectHW, rectHW);
-        }
-      }
-    }, [numbers, openFields, mines, x, y, columns, rows, revealMines]);
-
-    useEffect(() => {
-      if (!revealMines) {
-        return;
-      }
-      const canvas = canvasRef.current!;
-      const ctx = canvas.getContext("2d")!;
-
-      ctx.fillStyle = "red";
-      for (const { x, y } of mines) {
-        ctx.fillRect(x * rectHW, y * rectHW, rectHW, rectHW);
-      }
-    }, [mines, revealMines]);
-
-    useEffect(() => {
-      const canvas = canvasRef.current!;
-      const ctx = canvas.getContext("2d")!;
-
-      for (const { x, y } of marked) {
-        ctx.fillText("!", x * rectHW + rectHW / 2, y * rectHW + rectHW / 2);
-      }
-    }, [marked, x, y, revealMines]);
-
     return (
       <div style={{ padding: "5px" }}>
         <div
@@ -204,4 +191,4 @@ export const Field: FC<{
       </div>
     );
   }
-);
+
